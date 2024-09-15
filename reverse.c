@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define MAX_INPUT_LENGTH 100
+
 FILE *fptr;
 
 typedef struct Node {
@@ -56,19 +58,48 @@ void printListReverse(Node *head){
     }
 }
 
+void tokenToNode(char *userInput, Node **head){
+    char *token = strtok(userInput, " ");
+    while (token != NULL)
+    {
+        pushNode(head, token);
+        token = strtok(NULL, " ");
+    }
+}
 
 int main(int argc, char *argv[]) {
     Node *head = NULL;
-
-    pushNode(&head, "Hello");
-    pushNode(&head, "World");
-
-    printListReverse(head);
-
     if (argc == 1){
+        char userInput[MAX_INPUT_LENGTH];
+        printf("Ingrese el texto a revertir: \n");
+        
+        if (fgets(userInput, MAX_INPUT_LENGTH, stdin) != NULL){
+            size_t length = strlen(userInput);
+            if (userInput[length - 1] == '\n') {
+                userInput[length - 1] = '\0';
+            }
+            tokenToNode(userInput, &head);
+        }
+        printListReverse(head);
     } else if (argc == 2)
     {
+        fptr = fopen(argv[1], "r");
+
+        if (fptr == NULL){
+            fprintf(stderr, "reverse: cannot open file '/no/such/file.txt'\n");   
+        }
+
+
     } else if (argc == 3)
     {
+        fptr = fopen(argv[1], "r");
+
+        if (fptr == NULL){
+            fprintf(stderr, "reverse: cannot open file '/no/such/file.txt'\n");   
+        }
+    } else if (argc >= 4)
+    {
+        fprintf(stderr, "usage: reverse <input> <output>\n");   
     }
+    exit(1);
 }
