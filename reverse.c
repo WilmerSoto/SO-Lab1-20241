@@ -59,6 +59,11 @@ void printListReverse(Node *head){
 }
 
 void tokenToNode(char *userInput, Node **head){
+    size_t length = strlen(userInput);
+    if (userInput[length - 1] == '\n') {
+        userInput[length - 1] = '\0';
+    }
+
     char *token = strtok(userInput, " ");
     while (token != NULL)
     {
@@ -69,29 +74,34 @@ void tokenToNode(char *userInput, Node **head){
 
 int main(int argc, char *argv[]) {
     Node *head = NULL;
+    char userInput[MAX_INPUT_LENGTH];
+
     if (argc == 1){
-        char userInput[MAX_INPUT_LENGTH];
         printf("Ingrese el texto a revertir: \n");
         
         if (fgets(userInput, MAX_INPUT_LENGTH, stdin) != NULL){
-            size_t length = strlen(userInput);
-            if (userInput[length - 1] == '\n') {
-                userInput[length - 1] = '\0';
-            }
             tokenToNode(userInput, &head);
         }
         printListReverse(head);
     } else if (argc == 2)
     {
         fptr = fopen(argv[1], "r");
-
         if (fptr == NULL){
             fprintf(stderr, "reverse: cannot open file '/no/such/file.txt'\n");   
         }
-
+        
+        while (fgets(userInput, MAX_INPUT_LENGTH, fptr))                
+        {   
+            tokenToNode(userInput, &head);
+        }
+        printListReverse(head);
 
     } else if (argc == 3)
     {
+        if (strcmp(argv[1], argv[2]) == 0){
+            fprintf(stderr, "reverse: input and output file must differ\n");   
+        }
+
         fptr = fopen(argv[1], "r");
 
         if (fptr == NULL){
