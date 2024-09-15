@@ -4,7 +4,8 @@
 #include <sys/stat.h>
 #define MAX_INPUT_LENGTH 100
 
-FILE *fptr;
+FILE *inputFile;
+FILE *outputFile;
 
 typedef struct Node {
     char *word;
@@ -40,13 +41,7 @@ void *pushNode(Node **head, char *word){
 
 void printListReverse(Node *head){
     Node *temp = head;
-
-    if (temp == NULL){
-        printf("Lista vacia.");
-        return;
-    }
-
-    while (temp->next !=NULL)
+    while (temp && temp->next !=NULL)
     {
         temp = temp->next;
     }
@@ -65,11 +60,38 @@ void tokenToNode(char *userInput, Node **head){
         userInput[length - 1] = '\0';
     }
 
-    char *token = strtok(userInput, " ");
+    char *token = strtok(userInput, "\n");
     while (token != NULL)
     {
         pushNode(head, token);
-        token = strtok(NULL, " ");
+        token = strtok(NULL, "\n");
+    }
+}
+
+void writeReverseToFile(Node *head, FILE *outputFile){
+    Node *current = head;
+    while (current && current->next != NULL)
+    {
+        current = current->next;
+    }
+    
+    while (current != NULL)
+    {
+        fprintf(outputFile, "%s\n", current->word);
+        current = current->prev;
+    }
+    
+}
+
+void freeDoublyLinkedList(Node *head){
+    Node *current = head;
+    Node *next;
+
+    while (current != NULL) {
+        next = current->next;
+        free(current->word);
+        free(current);
+        current = next;
     }
 }
 
@@ -90,27 +112,27 @@ int main(int argc, char *argv[]) {
     Node *head = NULL;
     char userInput[MAX_INPUT_LENGTH];
 
-    if (argc == 1){
-        printf("Ingrese el texto a revertir: \n");
-        
-        if (fgets(userInput, MAX_INPUT_LENGTH, stdin) != NULL){
+    if (argc == 1){        
+        while (fgets(userInput, MAX_INPUT_LENGTH, stdin) != NULL){
             tokenToNode(userInput, &head);
         }
         printListReverse(head);
         exit(0);
     } else if (argc == 2)
     {
-        fptr = fopen(argv[1], "r");
-        if (fptr == NULL){
+        inputFile = fopen(argv[1], "r");
+        if (inputFile == NULL){
             fprintf(stderr, "reverse: cannot open file '/no/such/file.txt'\n");   
             exit(1);
         }
         
-        while (fgets(userInput, MAX_INPUT_LENGTH, fptr))                
+        while (fgets(userInput, MAX_INPUT_LENGTH, inputFile))                
         {   
             tokenToNode(userInput, &head);
         }
         printListReverse(head);
+        fclose(inputFile);
+        free(inputFile);
         exit(0);
     } else if (argc == 3)
     {
@@ -119,14 +141,30 @@ int main(int argc, char *argv[]) {
             exit(1);   
         } 
 
-        fptr = fopen(argv[1], "r");
-        if (fptr == NULL){
-            fprintf(stderr, "reverse: cannot open file '/no/such/file.txt'\n");
+        inputFile = fopen(argv[1], "r");
+        outputFile = fopen(argv[2], "w");
+        if (inputFile == NULL){
+            fprintf(stderr, "reverse: cannot open file '%s'\n", argv[1]);
+            exit(1);   
+        }else if (outputFile == NULL){
+            fprintf(stderr, "reverse: cannot open file '%s'\n", argv[2]);
+            fclose(inputFile);
             exit(1);   
         }
+
+        while (fgets(userInput, MAX_INPUT_LENGTH, inputFile))
+        {
+            tokenToNode(userInput, &head);
+        }
+        writeReverseToFile(head, outputFile);
+
+        fclose(inputFile);
+        fclose(outputFile);
+        exit(0);
     } else if (argc >= 4)
     {
         fprintf(stderr, "usage: reverse <input> <output>\n");   
     }
+    freeDoublyLinkedList(head);
     exit(1);
 }
